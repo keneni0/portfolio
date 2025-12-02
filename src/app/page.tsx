@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { projects, type ProjectItem } from "./data/projects";
 
 type ExperienceItem = {
@@ -80,6 +81,7 @@ export default function Home() {
     publicRepos: null,
     followers: null,
   });
+  const [contactError, setContactError] = useState<string | null>(null);
 
   const panelClasses =
     theme === "dark"
@@ -119,6 +121,32 @@ export default function Home() {
 
   const accentText = theme === "dark" ? "text-emerald-300" : "text-emerald-700";
   const accentCyanText = theme === "dark" ? "text-cyan-300" : "text-cyan-700";
+
+  const handleContactSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setContactError(null);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const name = (formData.get("name") ?? "").toString().trim();
+    const email = (formData.get("email") ?? "").toString().trim();
+    const message = (formData.get("message") ?? "").toString().trim();
+
+    if (!name || !email || !message) {
+      setContactError("Please fill in your name, email, and message.");
+      return;
+    }
+
+    const subject = encodeURIComponent(`Portfolio contact from ${name}`);
+    const body = encodeURIComponent(
+      `${message}\n\nFrom: ${name} <${email}>\nSource: Portfolio contact form`,
+    );
+
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=keneniasefa14@gmail.com&su=${subject}&body=${body}`;
+
+    window.open(gmailUrl, "_blank");
+    form.reset();
+  };
 
   // Dark / light mode toggle
   useEffect(() => {
@@ -918,12 +946,7 @@ export default function Home() {
                   ./send_message.sh
                 </span>
               </div>
-              <form
-                className="space-y-3 px-4 py-4 text-xs"
-                action="mailto:keneniasefa14@gmail.com"
-                method="post"
-                encType="text/plain"
-              >
+              <form className="space-y-3 px-4 py-4 text-xs" onSubmit={handleContactSubmit}>
                 <div className="space-y-1">
                   <label
                     htmlFor="name"
@@ -987,8 +1010,11 @@ export default function Home() {
                 >
                   Send Message
                 </button>
+                {contactError && (
+                  <p className="text-[10px] text-red-400">{contactError}</p>
+                )}
                 <p className="text-[9px] text-slate-500">
-                  * Your message will be sent via your default mail client.
+                  * This opens a pre-filled email to keneniasefa14@gmail.com in Gmail.
                 </p>
               </form>
             </div>
